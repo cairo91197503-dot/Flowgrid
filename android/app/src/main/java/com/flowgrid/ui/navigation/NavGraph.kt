@@ -11,6 +11,7 @@ import com.flowgrid.ui.screens.GameScreen
 import com.flowgrid.ui.screens.HomeScreen
 import com.flowgrid.ui.screens.SettingsScreen
 import com.flowgrid.ui.screens.VictoryScreen
+import com.flowgrid.ui.screens.PaywallScreen
 
 @Composable
 fun NavGraph() {
@@ -55,6 +56,10 @@ fun NavGraph() {
         
         composable("settings") {
             SettingsScreen(navController)
+        }
+
+        composable("paywall") {
+            PaywallScreen(navController)
         }
     }
 }

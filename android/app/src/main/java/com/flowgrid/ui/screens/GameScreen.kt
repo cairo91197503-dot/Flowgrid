@@ -1,8 +1,6 @@
 package com.flowgrid.ui.screens
 
 import android.content.Context
-import android.media.AudioAttributes
-import android.media.SoundPool
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -18,6 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.flowgrid.ads.BannerAd
+import com.flowgrid.audio.SoundManager
 import com.flowgrid.model.PipeType
 import com.flowgrid.ui.components.PipeView
 import com.flowgrid.ui.theme.DarkText
@@ -38,6 +38,7 @@ fun GameScreen(
     val state by viewModel.state.collectAsState()
     val daltonicMode by viewModel.daltonicMode.collectAsState(initial = false)
     val unconnectedCells by viewModel.unconnectedCells.collectAsState()
+    val isPro by viewModel.billingManager.isPro.collectAsState()
 
     val vibrator = remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -60,7 +61,8 @@ fun GameScreen(
     LaunchedEffect(state.isWon) {
         if (state.isWon) {
             vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 30, 50, 50, 50, 30), -1))
-            delay(1000)
+            SoundManager.playVictory()
+            delay(500)
             navController.navigate("victory/${if (state.isDaily) "daily" else "free"}/${state.level?.seed ?: 0}/${state.moves}") {
                 popUpTo("home")
             }
@@ -133,6 +135,7 @@ fun GameScreen(
                                         isUnconnectedError = isUnconnectedError,
                                         onClick = {
                                             if (!state.isWon && !cell.fixed && cell.type != PipeType.EMPTY) {
+                                                SoundManager.playClick()
                                                 vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
                                                 viewModel.rotatePiece(x, y)
                                             }
@@ -163,7 +166,10 @@ fun GameScreen(
             }
         }
 
-        // Space for Ad Banner
-        Spacer(modifier = Modifier.height(50.dp))
+        if (!isPro) {
+            BannerAd()
+        } else {
+            Spacer(modifier = Modifier.height(50.dp))
+        }
     }
 }

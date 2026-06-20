@@ -2,6 +2,7 @@ package com.flowgrid.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowgrid.billing.BillingManager
 import com.flowgrid.data.DataStoreManager
 import com.flowgrid.data.GameResultDao
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val dataStoreManager: DataStoreManager,
-    private val gameResultDao: GameResultDao
+    private val gameResultDao: GameResultDao,
+    val billingManager: BillingManager
 ) : ViewModel() {
 
     val currentStreak = dataStoreManager.streakCurrent.stateIn(
@@ -36,7 +38,8 @@ class HomeViewModel @Inject constructor(
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val dataStoreManager: DataStoreManager
+    private val dataStoreManager: DataStoreManager,
+    val billingManager: BillingManager
 ) : ViewModel() {
 
     val daltonicMode = dataStoreManager.daltonicMode.stateIn(

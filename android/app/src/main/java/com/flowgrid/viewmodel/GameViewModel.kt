@@ -2,6 +2,7 @@ package com.flowgrid.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowgrid.billing.BillingManager
 import com.flowgrid.data.DataStoreManager
 import com.flowgrid.data.GameResult
 import com.flowgrid.data.GameResultDao
@@ -23,7 +24,8 @@ import javax.inject.Inject
 @HiltViewModel
 class GameViewModel @Inject constructor(
     private val gameResultDao: GameResultDao,
-    private val dataStoreManager: DataStoreManager
+    private val dataStoreManager: DataStoreManager,
+    val billingManager: BillingManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(GameState(level = null))

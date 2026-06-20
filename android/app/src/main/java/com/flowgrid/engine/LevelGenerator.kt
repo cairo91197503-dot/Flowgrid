@@ -70,7 +70,7 @@ object LevelGenerator {
         }
     }
 
-    fun generate(seed: Int, size: Int = 5): Level {
+    fun generate(seed: Int, size: Int = 5, scramble: Boolean = true): Level {
         val random = Mulberry32(seed)
         val grid = Array(size) { y ->
             Array(size) { x ->
@@ -112,11 +112,13 @@ object LevelGenerator {
             }
         }
 
-        for (y in 0 until size) {
-            for (x in 0 until size) {
-                val c = grid[y][x]
-                if (!c.fixed && c.type != PipeType.EMPTY) {
-                    c.rotation = random.nextInt(4)
+        if (scramble) {
+            for (y in 0 until size) {
+                for (x in 0 until size) {
+                    val c = grid[y][x]
+                    if (!c.fixed && c.type != PipeType.EMPTY) {
+                        c.rotation = random.nextInt(4)
+                    }
                 }
             }
         }
