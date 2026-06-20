@@ -1,0 +1,169 @@
+package com.flowgrid.ui.screens
+
+import android.content.Context
+import android.media.AudioAttributes
+import android.media.SoundPool
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.flowgrid.model.PipeType
+import com.flowgrid.ui.components.PipeView
+import com.flowgrid.ui.theme.DarkText
+import com.flowgrid.ui.theme.Earth
+import com.flowgrid.ui.theme.Sand
+import com.flowgrid.ui.theme.Terracotta
+import com.flowgrid.viewmodel.GameViewModel
+import kotlinx.coroutines.delay
+
+@Composable
+fun GameScreen(
+    navController: NavController,
+    mode: String,
+    seed: Int? = null,
+    viewModel: GameViewModel = hiltViewModel()
+) {
+    val context = LocalContext.current
+    val state by viewModel.state.collectAsState()
+    val daltonicMode by viewModel.daltonicMode.collectAsState(initial = false)
+    val unconnectedCells by viewModel.unconnectedCells.collectAsState()
+
+    val vibrator = remember {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vm = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            vm.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (mode == "daily") {
+            viewModel.initDaily()
+        } else {
+            viewModel.initFree(seed)
+        }
+    }
+
+    LaunchedEffect(state.isWon) {
+        if (state.isWon) {
+            vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 30, 50, 50, 50, 30), -1))
+            delay(1000)
+            navController.navigate("victory/${if (state.isDaily) "daily" else "free"}/${state.level?.seed ?: 0}/${state.moves}") {
+                popUpTo("home")
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Sand)
+    ) {
+        // App Bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            TextButton(onClick = { navController.popBackStack() }) {
+                Text("Voltar", color = DarkText, fontWeight = FontWeight.Bold)
+            }
+            Text(
+                text = if (mode == "daily") "Nível do Dia" else "Modo Livre",
+                style = MaterialTheme.typography.titleLarge,
+                color = DarkText
+            )
+            Surface(
+                color = Earth.copy(alpha = 0.3f),
+                shape = MaterialTheme.shapes.small
+            ) {
+                Text(
+                    text = "${state.moves} mov",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    color = DarkText,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Grid
+        state.level?.let { level ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .padding(16.dp)
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    for (y in 0 until level.size) {
+                        Row(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                        ) {
+                            for (x in 0 until level.size) {
+                                val cell = level.grid[y][x]
+                                val isUnconnectedError = unconnectedCells.any { it.first == x && it.second == y }
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                        .padding(2.dp)
+                                ) {
+                                    PipeView(
+                                        cell = cell,
+                                        daltonicMode = daltonicMode,
+                                        isUnconnectedError = isUnconnectedError,
+                                        onClick = {
+                                            if (!state.isWon && !cell.fixed && cell.type != PipeType.EMPTY) {
+                                                vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
+                                                viewModel.rotatePiece(x, y)
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Bottom Controls
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Button(
+                onClick = { viewModel.verify() },
+                colors = ButtonDefaults.buttonColors(containerColor = Terracotta)
+            ) {
+                Text("Verificar")
+            }
+        }
+
+        // Space for Ad Banner
+        Spacer(modifier = Modifier.height(50.dp))
+    }
+}
