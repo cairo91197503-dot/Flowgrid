@@ -3,17 +3,23 @@ package com.flowgrid.billing
 import android.app.Activity
 import android.content.Context
 import com.android.billingclient.api.*
+import com.flowgrid.data.DataStoreManager
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class BillingManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val dataStoreManager: DataStoreManager
 ) {
+    private val scope = CoroutineScope(Dispatchers.IO)
     private val _isPro = MutableStateFlow(false)
     val isPro: StateFlow<Boolean> = _isPro.asStateFlow()
 
@@ -55,9 +61,12 @@ class BillingManager @Inject constructor(
         billingClient.queryPurchasesAsync(queryPurchasesParams) { billingResult, purchases ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                 val isProUser = purchases.any { purchase ->
-                    purchase.products.contains("remove_ads")
+                    purchase.products.contains("flowgrid_pro")
                 }
                 _isPro.value = isProUser
+                if (isProUser) {
+                    syncProBenefits()
+                }
             }
         }
     }
@@ -67,7 +76,7 @@ class BillingManager @Inject constructor(
             .setProductList(
                 listOf(
                     QueryProductDetailsParams.Product.newBuilder()
-                        .setProductId("remove_ads")
+                        .setProductId("flowgrid_pro")
                         .setProductType(BillingClient.ProductType.INAPP)
                         .build()
                 )
@@ -100,15 +109,24 @@ class BillingManager @Inject constructor(
                 billingClient.acknowledgePurchase(acknowledgePurchaseParams) { billingResult ->
                     if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                         _isPro.value = true
+                        syncProBenefits()
                     }
                 }
             } else {
                 _isPro.value = true
+                syncProBenefits()
             }
         }
     }
     
-    fun restorePurchases(activity: Activity?) { // Activity param for consistency, optional toast could be added later
+    private fun syncProBenefits() {
+        scope.launch {
+            dataStoreManager.setAdsRemoved(true)
+            dataStoreManager.setDicasIlimitadas(true)
+        }
+    }
+    
+    fun restorePurchases(activity: Activity?) {
         queryPurchases()
     }
 }

@@ -19,6 +19,7 @@ class DataStoreManager(private val dataStore: DataStore<Preferences>) {
         val DICA_COUNT = intPreferencesKey("dica_count")
         val THEME_SELECTED = stringPreferencesKey("theme_selected")
         val DALTONIC_MODE = booleanPreferencesKey("daltonic_mode")
+        val DICAS_ILIMITADAS = booleanPreferencesKey("dicas_ilimitadas")
     }
 
     val streakCurrent: Flow<Int> = dataStore.data.map { it[STREAK_CURRENT] ?: 0 }
@@ -28,6 +29,7 @@ class DataStoreManager(private val dataStore: DataStore<Preferences>) {
     val dicaCount: Flow<Int> = dataStore.data.map { it[DICA_COUNT] ?: 3 } // Start with 3 hints
     val themeSelected: Flow<String> = dataStore.data.map { it[THEME_SELECTED] ?: "stone_garden" }
     val daltonicMode: Flow<Boolean> = dataStore.data.map { it[DALTONIC_MODE] ?: false }
+    val dicasIlimitadas: Flow<Boolean> = dataStore.data.map { it[DICAS_ILIMITADAS] ?: false }
 
     suspend fun setDaltonicMode(enabled: Boolean) {
         dataStore.edit { it[DALTONIC_MODE] = enabled }
@@ -37,11 +39,18 @@ class DataStoreManager(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { it[ADS_REMOVED] = removed }
     }
 
+    suspend fun setDicasIlimitadas(enabled: Boolean) {
+        dataStore.edit { it[DICAS_ILIMITADAS] = enabled }
+    }
+
     suspend fun useDica() {
         dataStore.edit { 
-            val current = it[DICA_COUNT] ?: 3
-            if (current > 0) {
-                it[DICA_COUNT] = current - 1
+            val unlimited = it[DICAS_ILIMITADAS] ?: false
+            if (!unlimited) {
+                val current = it[DICA_COUNT] ?: 3
+                if (current > 0) {
+                    it[DICA_COUNT] = current - 1
+                }
             }
         }
     }

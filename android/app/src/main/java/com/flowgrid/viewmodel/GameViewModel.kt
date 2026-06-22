@@ -35,6 +35,9 @@ class GameViewModel @Inject constructor(
     val unconnectedCells: StateFlow<List<Pair<Int, Int>>> = _unconnectedCells.asStateFlow()
     
     val daltonicMode = dataStoreManager.daltonicMode
+    val dicaCount = dataStoreManager.dicaCount
+    val isPro = billingManager.isPro
+    val dicasIlimitadas = dataStoreManager.dicasIlimitadas
 
     fun initDaily() {
         val today = LocalDate.now()
@@ -70,6 +73,25 @@ class GameViewModel @Inject constructor(
         _state.update { it.copy(level = newLevel, moves = it.moves + 1) }
         
         validateGrid(true)
+    }
+
+    suspend fun usarDica(): Pair<Int, Int>? {
+        val level = _state.value.level ?: return null
+        
+        val invalidCells = mutableListOf<Pair<Int, Int>>()
+        for (y in 0 until level.size) {
+            for (x in 0 until level.size) {
+                val cell = level.grid[y][x]
+                if (!cell.fixed && !cell.hasWater && cell.type != PipeType.EMPTY) {
+                    invalidCells.add(Pair(x, y))
+                }
+            }
+        }
+        
+        if (invalidCells.isEmpty()) return null
+        
+        dataStoreManager.useDica()
+        return invalidCells.random()
     }
 
     fun verify() {
