@@ -53,12 +53,21 @@ class GameViewModel @Inject constructor(
         val currentState = _state.value
         if (currentState.isWon || currentState.level == null) return
 
-        val cell = currentState.level.grid[y][x]
+        val level = currentState.level
+        val cell = level.grid[y][x]
         if (cell.type == PipeType.EMPTY || cell.fixed) return
 
-        cell.rotation = (cell.rotation + 1) % 4
+        // 2. Criar uma cópia profunda do grid para rotacionar
+        val newGrid = Array(level.size) { r ->
+            Array(level.size) { c ->
+                level.grid[r][c].copy()
+            }
+        }
         
-        _state.update { it.copy(moves = it.moves + 1) }
+        newGrid[y][x] = newGrid[y][x].copy(rotation = (cell.rotation + 1) % 4)
+        val newLevel = level.copy(grid = newGrid)
+
+        _state.update { it.copy(level = newLevel, moves = it.moves + 1) }
         
         validateGrid(true)
     }
@@ -70,12 +79,18 @@ class GameViewModel @Inject constructor(
 
     private fun validateGrid(checkWin: Boolean): com.flowgrid.engine.ValidationResult {
         val level = _state.value.level ?: return com.flowgrid.engine.ValidationResult(false, emptySet(), emptyList())
-        val result = PathValidator.validate(level.grid)
         
-        // Trigger recomposition by cloning level or state? 
-        // In mutable state flow, if we just mutate inside, we need to force update
-        // We'll trust the caller recomposes or we force an update
-        _state.update { it.copy() }
+        // Criar uma cópia profunda para não modificar o estado atual diretamente antes da emissão
+        val newGrid = Array(level.size) { r ->
+            Array(level.size) { c ->
+                level.grid[r][c].copy()
+            }
+        }
+        
+        val result = PathValidator.validate(newGrid)
+        val newLevel = level.copy(grid = newGrid)
+        
+        _state.update { it.copy(level = newLevel) }
         
         if (checkWin && result.isSolved && !_state.value.isWon) {
             _state.update { it.copy(isWon = true) }

@@ -48,21 +48,42 @@ class DataStoreManager(private val dataStore: DataStore<Preferences>) {
 
     suspend fun updateStreak(todayInt: Int) {
         dataStore.edit { prefs ->
-            val lastDate = prefs[STREAK_LAST_DATE] ?: 0
+            val lastDateStr = prefs[STREAK_LAST_DATE]?.toString() ?: "0"
             val currentStreak = prefs[STREAK_CURRENT] ?: 0
             
-            if (lastDate != todayInt) {
-                val nextExpectedDate = todayInt - 1 // Simplified: this isn't mathematically perfect over months, better to use days since epoch
-                // For demonstration using actual int like 20240502:
-                // Actually, let's just assume consecutive days logic handled elsewhere or approximate
-                // For true consecutive, we should compare LocalDate.toEpochDay()
+            if (lastDateStr != todayInt.toString()) {
+                val todayStr = todayInt.toString()
+                var diffDays = -1L
                 
-                prefs[STREAK_CURRENT] = currentStreak + 1
+                // 3. Corrigir lógica do streak com LocalDate e toEpochDay para lidar com viradas de mês
+                try {
+                    if (lastDateStr.length == 8) {
+                        val formatter = java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")
+                        val lastDate = java.time.LocalDate.parse(lastDateStr, formatter)
+                        val todayDate = java.time.LocalDate.parse(todayStr, formatter)
+                        diffDays = todayDate.toEpochDay() - lastDate.toEpochDay()
+                    }
+                } catch (e: Exception) {
+                    diffDays = -1L
+                }
+                
+                if (diffDays == 1L) {
+                    // Increments streak for consecutive days
+                    prefs[STREAK_CURRENT] = currentStreak + 1
+                } else if (diffDays == 0L) {
+                    // Already played today, no change -> early return
+                    return@edit 
+                } else {
+                    // Missed a day or first time, reset to 1
+                    prefs[STREAK_CURRENT] = 1
+                }
+                
                 prefs[STREAK_LAST_DATE] = todayInt
                 
+                val newStreak = prefs[STREAK_CURRENT] ?: 1
                 val best = prefs[STREAK_BEST] ?: 0
-                if (currentStreak + 1 > best) {
-                    prefs[STREAK_BEST] = currentStreak + 1
+                if (newStreak > best) {
+                    prefs[STREAK_BEST] = newStreak
                 }
             }
         }

@@ -26,7 +26,7 @@ object PathValidator {
         // Reset water
         for (y in 0 until size) {
             for (x in 0 until size) {
-                grid[y][x].hasWater = false
+                grid[y][x] = grid[y][x].copy(hasWater = false)
             }
         }
 
@@ -44,8 +44,10 @@ object PathValidator {
         if (source == null) return ValidationResult(false, emptySet(), emptyList())
 
         val queue = ArrayDeque<GridCell>()
-        queue.add(source)
-        source.hasWater = true
+        
+        // Mark source
+        grid[source.y][source.x] = grid[source.y][source.x].copy(hasWater = true)
+        queue.add(grid[source.y][source.x])
 
         val connectedCells = mutableSetOf<Pair<Int, Int>>()
 
@@ -63,8 +65,8 @@ object PathValidator {
                         val oppDir = (d + 2) % 4
                         val nDirs = getNeighbors(n)
                         if (nDirs.contains(oppDir)) {
-                            n.hasWater = true
-                            queue.add(n)
+                            grid[ny][nx] = n.copy(hasWater = true)
+                            queue.add(grid[ny][nx])
                         }
                     }
                 }

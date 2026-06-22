@@ -84,30 +84,26 @@ object LevelGenerator {
             val pt = path[i]
             val c = grid[pt.y][pt.x]
             if (i == 0) {
-                c.type = PipeType.SOURCE
-                c.fixed = true
                 val dir2 = getDir(pt, path[i + 1])
-                c.rotation = (dir2 - 2 + 4) % 4
+                grid[pt.y][pt.x] = c.copy(type = PipeType.SOURCE, fixed = true, rotation = (dir2 - 2 + 4) % 4)
             } else if (i == path.size - 1) {
-                c.type = PipeType.SINK
-                c.fixed = true
                 val dir1 = getDir(pt, path[i - 1])
-                c.rotation = dir1
+                grid[pt.y][pt.x] = c.copy(type = PipeType.SINK, fixed = true, rotation = dir1)
             } else {
                 val d1 = getDir(pt, path[i - 1])
                 val d2 = getDir(pt, path[i + 1])
                 if (d1 % 2 == d2 % 2) {
-                    c.type = PipeType.STRAIGHT
-                    c.rotation = if (d1 % 2 == 0) 0 else 1
+                    grid[pt.y][pt.x] = c.copy(type = PipeType.STRAIGHT, rotation = if (d1 % 2 == 0) 0 else 1)
                 } else {
-                    c.type = PipeType.CURVE
+                    var rot = 0
                     for (r in 0 until 4) {
                         val rotConn = listOf((0 + r) % 4, (1 + r) % 4)
                         if (rotConn.contains(d1) && rotConn.contains(d2)) {
-                            c.rotation = r
+                            rot = r
                             break
                         }
                     }
+                    grid[pt.y][pt.x] = c.copy(type = PipeType.CURVE, rotation = rot)
                 }
             }
         }
@@ -117,7 +113,7 @@ object LevelGenerator {
                 for (x in 0 until size) {
                     val c = grid[y][x]
                     if (!c.fixed && c.type != PipeType.EMPTY) {
-                        c.rotation = random.nextInt(4)
+                        grid[y][x] = c.copy(rotation = random.nextInt(4))
                     }
                 }
             }

@@ -7,10 +7,10 @@ enum class PipeType {
 data class GridCell(
     val x: Int,
     val y: Int,
-    var type: PipeType,
-    var rotation: Int, // 0, 1, 2, 3 (each is 90 degrees)
-    var fixed: Boolean,
-    var hasWater: Boolean = false
+    val type: PipeType,
+    val rotation: Int, // 0, 1, 2, 3 (each is 90 degrees)
+    val fixed: Boolean,
+    val hasWater: Boolean = false
 )
 
 data class Level(
