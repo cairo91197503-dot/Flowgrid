@@ -21,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.flowgrid.ads.BannerAd
 import com.flowgrid.audio.SoundManager
 import com.flowgrid.model.PipeType
 import com.flowgrid.ui.components.PipeView
@@ -235,7 +234,7 @@ fun GameScreen(
         }
 
         if (!isPro) {
-            BannerAd()
+            viewModel.adManager.BannerAd()
         } else {
             Spacer(modifier = Modifier.height(50.dp))
         }

@@ -34,6 +34,16 @@ class HomeViewModel @Inject constructor(
         val todayInt = today.year * 10000 + today.monthValue * 100 + today.dayOfMonth
         lastDate == todayInt
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    
+    val onboardingCompleted: StateFlow<Boolean> = dataStoreManager.onboardingCompleted.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5000), false
+    )
+    
+    fun setOnboardingCompleted() {
+        viewModelScope.launch {
+            dataStoreManager.setOnboardingCompleted()
+        }
+    }
 }
 
 @HiltViewModel

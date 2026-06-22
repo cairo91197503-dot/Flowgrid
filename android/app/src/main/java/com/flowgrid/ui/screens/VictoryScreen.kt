@@ -1,5 +1,6 @@
 package com.flowgrid.ui.screens
 
+import android.app.Activity
 import android.content.Intent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -21,6 +22,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.flowgrid.engine.LevelGenerator
 import com.flowgrid.engine.PathValidator
@@ -32,13 +34,15 @@ import com.flowgrid.ui.theme.Sand
 import com.flowgrid.ui.theme.Terracotta
 import com.flowgrid.ui.theme.Water
 import com.flowgrid.util.ShareHelper
+import com.flowgrid.viewmodel.GameViewModel
 
 @Composable
 fun VictoryScreen(
     navController: NavController,
     mode: String,
     seed: Int,
-    moves: Int
+    moves: Int,
+    viewModel: GameViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     
@@ -51,7 +55,14 @@ fun VictoryScreen(
 
     var startAnimation by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        startAnimation = true
+        val activity = context as? Activity
+        if (activity != null) {
+            viewModel.showInterstitialOnWin(activity) {
+                startAnimation = true
+            }
+        } else {
+            startAnimation = true
+        }
     }
 
     val progress by animateFloatAsState(

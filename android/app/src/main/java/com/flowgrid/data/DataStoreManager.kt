@@ -20,6 +20,7 @@ class DataStoreManager(private val dataStore: DataStore<Preferences>) {
         val THEME_SELECTED = stringPreferencesKey("theme_selected")
         val DALTONIC_MODE = booleanPreferencesKey("daltonic_mode")
         val DICAS_ILIMITADAS = booleanPreferencesKey("dicas_ilimitadas")
+        val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
     }
 
     val streakCurrent: Flow<Int> = dataStore.data.map { it[STREAK_CURRENT] ?: 0 }
@@ -30,6 +31,11 @@ class DataStoreManager(private val dataStore: DataStore<Preferences>) {
     val themeSelected: Flow<String> = dataStore.data.map { it[THEME_SELECTED] ?: "stone_garden" }
     val daltonicMode: Flow<Boolean> = dataStore.data.map { it[DALTONIC_MODE] ?: false }
     val dicasIlimitadas: Flow<Boolean> = dataStore.data.map { it[DICAS_ILIMITADAS] ?: false }
+    val onboardingCompleted: Flow<Boolean> = dataStore.data.map { it[ONBOARDING_COMPLETED] ?: false }
+
+    suspend fun setOnboardingCompleted() {
+        dataStore.edit { it[ONBOARDING_COMPLETED] = true }
+    }
 
     suspend fun setDaltonicMode(enabled: Boolean) {
         dataStore.edit { it[DALTONIC_MODE] = enabled }

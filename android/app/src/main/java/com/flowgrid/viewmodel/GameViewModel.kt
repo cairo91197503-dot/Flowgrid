@@ -1,7 +1,9 @@
 package com.flowgrid.viewmodel
 
+import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowgrid.ads.AdManager
 import com.flowgrid.billing.BillingManager
 import com.flowgrid.data.DataStoreManager
 import com.flowgrid.data.GameResult
@@ -25,7 +27,8 @@ import javax.inject.Inject
 class GameViewModel @Inject constructor(
     private val gameResultDao: GameResultDao,
     private val dataStoreManager: DataStoreManager,
-    val billingManager: BillingManager
+    val billingManager: BillingManager,
+    val adManager: AdManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(GameState(level = null))
@@ -117,9 +120,14 @@ class GameViewModel @Inject constructor(
         if (checkWin && result.isSolved && !_state.value.isWon) {
             _state.update { it.copy(isWon = true) }
             saveResult()
+            adManager.loadInterstitial()
         }
         
         return result
+    }
+
+    fun showInterstitialOnWin(activity: Activity, onDismiss: () -> Unit) {
+        adManager.showInterstitialIfReady(activity, onDismiss)
     }
 
     private fun saveResult() {

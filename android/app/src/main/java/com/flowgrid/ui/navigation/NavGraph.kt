@@ -1,6 +1,9 @@
 package com.flowgrid.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -9,18 +12,26 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.flowgrid.ui.screens.GameScreen
 import com.flowgrid.ui.screens.HomeScreen
+import com.flowgrid.ui.screens.OnboardingScreen
 import com.flowgrid.ui.screens.SettingsScreen
 import com.flowgrid.ui.screens.VictoryScreen
 import com.flowgrid.ui.screens.PaywallScreen
+import com.flowgrid.viewmodel.HomeViewModel
 
 @Composable
-fun NavGraph() {
+fun NavGraph(viewModel: HomeViewModel = hiltViewModel()) {
     val navController = rememberNavController()
+    val onboardingCompleted by viewModel.onboardingCompleted.collectAsState(initial = false)
 
-    NavHost(navController = navController, startDestination = "home") {
+    NavHost(navController = navController, startDestination = if (onboardingCompleted) "home" else "onboarding") {
+        composable("onboarding") {
+            OnboardingScreen(navController)
+        }
+
         composable("home") {
             HomeScreen(navController)
         }
+
         
         composable(
             route = "game/{mode}?seed={seed}",
