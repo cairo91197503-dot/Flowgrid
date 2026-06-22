@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "FlowGrid",
+  "description": "A relaxing logic puzzle game inspired by zen stone gardens. Connect pipes to find the flow with daily challenges.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
