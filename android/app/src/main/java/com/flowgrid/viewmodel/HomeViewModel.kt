@@ -45,20 +45,3 @@ class HomeViewModel @Inject constructor(
         }
     }
 }
-
-@HiltViewModel
-class SettingsViewModel @Inject constructor(
-    private val dataStoreManager: DataStoreManager,
-    val billingManager: BillingManager
-) : ViewModel() {
-
-    val daltonicMode = dataStoreManager.daltonicMode.stateIn(
-        viewModelScope, SharingStarted.WhileSubscribed(5000), false
-    )
-    
-    fun toggleDaltonicMode(enabled: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setDaltonicMode(enabled)
-        }
-    }
-}
