@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.FlowGrid" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.FlowGrid.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/sand</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.FlowGrid</item>
+    </style>
 </resources>
